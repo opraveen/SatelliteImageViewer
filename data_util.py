@@ -16,12 +16,37 @@ import os
 import cv2
 from skimage.segmentation import slic, mark_boundaries
 from shapely.wkt import loads as wkt_loads
+import glob
+
 
 IN_DIR = '../data'
 GRID_SIZES = pd.read_csv(IN_DIR + '/grid_sizes.csv',
                          names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
 df = pd.read_csv(IN_DIR + '/train_wkt_v4.csv')
 df.head()
+
+
+
+def get_all_test_images():
+    '''
+    Return list of all image_id's that are not part of training set.
+    Grab list of all image_id's and list of all Training image_id's.
+    Return the list of not intersected.
+    '''
+    path = IN_DIR + '/three_band/*.tif'  
+    files=glob.glob(path)   
+    images = []
+    for file in files:
+        image_id = str(file).replace('../data/three_band/','')
+        image_id = str(image_id).replace('.tif','')
+        #print(image_id)
+        images.append(image_id)
+    classes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    training_images = list(set(get_images_with_classes(classes)))
+    #print('training_images: ', training_images)
+
+    return list(set(images) - set(training_images))
+#print(get_all_test_images())
 
 
 def _get_xmax_ymin(grid_sizes_panda, image_id):
@@ -152,19 +177,7 @@ def _plot_mask_from_contours(raster_img_size, contours, class_value=1):
     cv2.fillPoly(img_mask, interior_list, 0)
     return img_mask
 
-
-
-#def _convert_coordinates_to_raster(coords, img_size, xymax):
-#    x_max, y_max = xymax
-#    height, width = img_size
-#    width1 = 1.0 * width * width / (width + 1)
-#    height1 = 1.0 * height * height / (height + 1)
-#    x_f = width1 / x_max
-#    y_f = height1 / y_max
-#    coords[:, 1] *= x_f
-#    coords[:, 0] *= y_f
-#    coords_int = np.round(coords).astype(np.int32)
-#    return coords_int
+    
 def _convert_coordinates_to_raster(coords, img_size, xymax):
     '''
     Return an xy coordinate mapped to image size.

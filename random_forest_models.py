@@ -53,7 +53,7 @@ import data_util
 # Tested = True 20 iterations of randomized search.
 PARAMETERS_BY_CLASS = {}
 CLASS_1 = {}
-CLASS_1['n_estimators'] = 100
+CLASS_1['n_estimators'] = 200
 CLASS_1['max_depth'] = None
 CLASS_1['min_samples_split'] = 5
 CLASS_1['min_samples_leaf'] = 2
@@ -64,7 +64,7 @@ PARAMETERS_BY_CLASS[1] = CLASS_1
 
 # Tested = False
 CLASS_2 = {}
-CLASS_2['n_estimators'] = 100
+CLASS_2['n_estimators'] = 200
 CLASS_2['max_depth'] = None
 CLASS_2['min_samples_split'] = 5
 CLASS_2['min_samples_leaf'] = 2
@@ -75,7 +75,7 @@ PARAMETERS_BY_CLASS[2] = CLASS_2
 
 # Tested = False
 CLASS_3 = {}
-CLASS_3['n_estimators'] = 100
+CLASS_3['n_estimators'] = 200
 CLASS_3['max_depth'] = None
 CLASS_3['min_samples_split'] = 5
 CLASS_3['min_samples_leaf'] = 2
@@ -86,7 +86,7 @@ PARAMETERS_BY_CLASS[3] = CLASS_3
 
 # Tested = False
 CLASS_4 = {}
-CLASS_4['n_estimators'] = 100
+CLASS_4['n_estimators'] = 200
 CLASS_4['max_depth'] = None
 CLASS_4['min_samples_split'] = 5
 CLASS_4['min_samples_leaf'] = 2
@@ -97,7 +97,7 @@ PARAMETERS_BY_CLASS[4] = CLASS_4
 
 # Tested = False
 CLASS_5 = {}
-CLASS_5['n_estimators'] = 100
+CLASS_5['n_estimators'] = 200
 CLASS_5['max_depth'] = None
 CLASS_5['min_samples_split'] = 5
 CLASS_5['min_samples_leaf'] = 2
@@ -108,7 +108,7 @@ PARAMETERS_BY_CLASS[5] = CLASS_5
 
 # Tested = False
 CLASS_6 = {}
-CLASS_6['n_estimators'] = 100
+CLASS_6['n_estimators'] = 200
 CLASS_6['max_depth'] = None
 CLASS_6['min_samples_split'] = 5
 CLASS_6['min_samples_leaf'] = 2
@@ -119,7 +119,7 @@ PARAMETERS_BY_CLASS[6] = CLASS_6
 
 # Tested = False
 CLASS_7 = {}
-CLASS_7['n_estimators'] = 100
+CLASS_7['n_estimators'] = 200
 CLASS_7['max_depth'] = None
 CLASS_7['min_samples_split'] = 5
 CLASS_7['min_samples_leaf'] = 2
@@ -130,7 +130,7 @@ PARAMETERS_BY_CLASS[7] = CLASS_7
 
 # Tested = False
 CLASS_8 = {}
-CLASS_8['n_estimators'] = 100
+CLASS_8['n_estimators'] = 200
 CLASS_8['max_depth'] = None
 CLASS_8['min_samples_split'] = 5
 CLASS_8['min_samples_leaf'] = 2
@@ -141,7 +141,7 @@ PARAMETERS_BY_CLASS[8] = CLASS_8
 
 # Tested = False
 CLASS_9 = {}
-CLASS_9['n_estimators'] = 100
+CLASS_9['n_estimators'] = 200
 CLASS_9['max_depth'] = None
 CLASS_9['min_samples_split'] = 5
 CLASS_9['min_samples_leaf'] = 2
@@ -152,7 +152,7 @@ PARAMETERS_BY_CLASS[9] = CLASS_9
 
 # Tested = False
 CLASS_10 = {}
-CLASS_10['n_estimators'] = 100
+CLASS_10['n_estimators'] = 200
 CLASS_10['max_depth'] = None
 CLASS_10['min_samples_split'] = 5
 CLASS_10['min_samples_leaf'] = 2
@@ -310,6 +310,21 @@ def predict(image_id, class_id):
     return pred_image
 
 
+def predict_proba(image_id, class_id):
+    '''
+    This is to run inference on any of the images.
+    '''
+    size = (500, 500)
+    stacked = data_util.build_19_deep_layer(image_id, size)
+    x_data = stacked.reshape(stacked.shape[0] * stacked.shape[1], 19)
+    print(x_data.shape)
+    model = joblib.load('models/rf_class_' + str(class_id) + '.pkl')
+    y_pred = model.predict_proba(x_data)
+    print(y_pred[:, 1])
+    pred_image = y_pred[:, 1].reshape(500, 500)
+    plt.imshow(pred_image * 255)
+    return pred_image
+
 PARAM_DIST = {"max_depth": [3, None],
               "max_features": sp_randint(1, 11),
               "min_samples_split": sp_randint(2, 11),
@@ -369,17 +384,26 @@ def perf_measure(y_actual, y_pred):
     false_neg = conf_mat[1][0]
     true_pos = conf_mat[1][1]
     false_pos = conf_mat[0][1]
+    print(true_pos, '\t', false_pos, '\t', true_neg, '\t', false_neg)
     return(true_pos, false_pos, true_neg, false_neg)
 
+def retrain_all():
+    for i in range(1,10):
+        train_random_forest_auto(i, 0)
 
-class_id = 1
-test_sample_size = 3
+        
+class_id = 3
+#test_sample_size = 3
 
 # random_search_for_hyperpara(class_1_ids_train, class_id)
-# train_random_forest(class_1_ids_train, class_id)
+#train_random_forest(class_1_ids_train, class_id)
 #train_random_forest_auto(class_id, test_sample_size)
-
-image_id = '6120_2_2'
-
-predict_random_forest(image_id, class_id)
-# predict(image_id, class_id)
+#
+#6110_4_0
+#6120_2_0
+#6170_0_4
+image_id = '6150_0_3'
+#predict_random_forest(image_id, class_id)
+predict_proba(image_id, class_id)
+#predict(image_id, class_id)
+#retrain_all()
