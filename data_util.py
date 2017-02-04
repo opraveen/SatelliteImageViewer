@@ -22,10 +22,16 @@ import glob
 IN_DIR = '../data'
 GRID_SIZES = pd.read_csv(IN_DIR + '/grid_sizes.csv',
                          names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
+SAMPLE_SUBMISSION = pd.read_csv(IN_DIR + '/sample_submission.csv',
+                         names=['ImageId','ClassType', 'MultipolygonWKT'], skiprows=1)
 df = pd.read_csv(IN_DIR + '/train_wkt_v4.csv')
 df.head()
 
 
+def get_all_test_images_official():
+    return list(set(SAMPLE_SUBMISSION.ImageId.tolist()))
+
+#print(get_all_test_images_official())
 
 def get_all_test_images():
     '''
@@ -48,6 +54,36 @@ def get_all_test_images():
     return list(set(images) - set(training_images))
 #print(get_all_test_images())
 
+def mask_to_polygons(mask):
+    all_polygons=[]
+    for shape, value in features.shapes(mask.astype(np.int16),
+                                mask = (mask==1),
+                                transform = rasterio.Affine(1.0, 0, 0, 0, 1.0, 0)):
+
+        all_polygons.append(shapely.geometry.shape(shape))
+
+    all_polygons = shapely.geometry.MultiPolygon(all_polygons)
+    if not all_polygons.is_valid:
+        all_polygons = all_polygons.buffer(0)
+        #Sometimes buffer() converts a simple Multipolygon to just a Polygon,
+        #need to keep it a Multi throughout
+        if all_polygons.type == 'Polygon':
+            all_polygons = shapely.geometry.MultiPolygon([all_polygons])
+    return all_polygons
+
+def get_xy_factor(img_size, xymax):
+    x_max, y_max = xymax
+    height, width = img_size
+    out_x = x_max / width
+    out_y = y_max / height
+    return [out_x, out_y]
+    
+def resize_multi_polygon(multi_polygon, img_size, xymax):
+    [x_fact, y_fact] = get_xy_factor(img_size, xymax)
+    for polygon in multi_polygon:
+        print('polygon:', polygon)
+        scaled = affinity.scale(polygon, xfact=1/500, yfact=1/500, origin=(0,0))
+        print('scaled: ', scaled)
 
 def _get_xmax_ymin(grid_sizes_panda, image_id):
     '''
@@ -195,6 +231,23 @@ def _convert_coordinates_to_raster(coords, img_size, xymax):
     coords[:, 1] *= pre_height / y_max
     return np.round(coords).astype(np.int32)
 
+def _convert_coord_to_csv_size(coords, img_size, xymax):
+    '''
+    Return an xy coordinate mapped to image size.
+    xymax info is learned from gridsizes csv file.
+    pre width is a transformation given from Kaggle tutorial W′=W⋅W/(W+1)
+    pre height is the same.
+    coords[:, 0] given from Kaggle tutorial x'=(x/x_max)*W'
+
+    '''
+    x_max, y_max = xymax
+    coords_split = str(coords).split(' ')
+    x_prime = coords_split[0]
+    y_prime = coords_split[1]
+    height, width = img_size
+    out_x = x_prime * (x_max / width)
+    out_y = y_prime * (y_max / height)
+    return (out_x + ' ' + out_y)
 
 def get_list_image_id():
     """Return list of image ID's"""
