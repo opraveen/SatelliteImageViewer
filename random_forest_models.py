@@ -23,7 +23,7 @@ forest I believe the slight dishonest will not hurt you too much.
     train_random_forest_auto(class_id, num_test_images). Beware, if you have
     a different set of hold out images for finding the hyperparameters, and
     the Trained model... That is not exactly honest. some test knowledge can
-    seep into the model which is techincally not good, but also remeber the
+    seep into the model which is technically not good, but also remember the
     only real test is the Kaggle test, which we do not have access to except
     through the Submission system.
 
@@ -161,6 +161,10 @@ CLASS_10['criterion'] = 'entropy'
 CLASS_10['bootstrap'] = True
 PARAMETERS_BY_CLASS[10] = CLASS_10
 
+# Rescaled height and width
+HEIGHT = 500
+WIDTH = 500
+
 
 def create_dataset(image_id, class_id):
     '''
@@ -168,7 +172,7 @@ def create_dataset(image_id, class_id):
 
 
     '''
-    size = (500, 500)
+    size = (HEIGHT, WIDTH)
     stacked = data_util.build_19_deep_layer(image_id, size)
     size = (stacked.shape[0], stacked.shape[1])
     print('size', size)
@@ -292,7 +296,7 @@ def predict_random_forest(image_id, class_id):
                                        importances[indices[feature]]))
 
     # Show Image
-    pred_image = y_pred.reshape(500, 500)
+    pred_image = y_pred.reshape(HEIGHT, WIDTH)
     plt.imshow(pred_image * 255)
 
 
@@ -300,11 +304,11 @@ def predict(image_id, class_id, model):
     '''
     This is to run inference on any of the images.
     '''
-    size = (500, 500)
+    size = (HEIGHT, WIDTH)
     stacked = data_util.build_19_deep_layer(image_id, size)
     x_data = stacked.reshape(stacked.shape[0] * stacked.shape[1], 19)
     y_pred = model.predict(x_data)
-    pred_image = y_pred.reshape(500, 500)
+    pred_image = y_pred.reshape(HEIGHT, WIDTH)
     #plt.imshow(pred_image * 255)
     #plt.imsave('testplot.png',pred_image * 255)
     return pred_image
@@ -314,14 +318,14 @@ def predict_proba(image_id, class_id):
     '''
     This is to run inference on any of the images.
     '''
-    size = (500, 500)
+    size = (HEIGHT, WIDTH)
     stacked = data_util.build_19_deep_layer(image_id, size)
     x_data = stacked.reshape(stacked.shape[0] * stacked.shape[1], 19)
     print(x_data.shape)
     model = joblib.load('models/rf_class_' + str(class_id) + '.pkl')
     y_pred = model.predict_proba(x_data)
     print(y_pred[:, 1])
-    pred_image = y_pred[:, 1].reshape(500, 500)
+    pred_image = y_pred[:, 1].reshape(HEIGHT, WIDTH)
     plt.imshow(pred_image * 255)
     plt.imsave('testplot.png', pred_image * 255)
     return pred_image
@@ -388,8 +392,9 @@ def perf_measure(y_actual, y_pred):
     print(true_pos, '\t', false_pos, '\t', true_neg, '\t', false_neg)
     return(true_pos, false_pos, true_neg, false_neg)
 
+
 def retrain_all():
-    for i in range(1,10):
+    for i in range(1, 10):
         train_random_forest_auto(i, 0)
 
         
@@ -409,7 +414,7 @@ def retrain_all():
 
 #mtp.count_rows_in_submission()
 
-mtp.reorder_csv()
+# mtp.reorder_csv()
 #
 #mtp.create_csv_initial()
 #all_test_images = data_util.get_all_test_images_official()
@@ -422,7 +427,7 @@ mtp.reorder_csv()
 #        print(cnt)
 #        print(image_id)
 #        img = predict(image_id, class_id, model)
-#        multi_ploygon = mtp.mask_to_polygons(img)
-#        mtp.create_csv_submission_inner(multi_ploygon,(500, 500),class_id, image_id)
-#retrain_all()
+#        multi_polygon = mtp.mask_to_polygons(img)
+#        mtp.create_csv_submission_inner(multi_polygon,(HEIGHT, WIDTH),class_id, image_id)
+retrain_all()
 print('done predicting')
