@@ -147,8 +147,8 @@ def sliding_window_9_9_pred(images, step_size, win_shape):
             stacked = cnn_data_util.build_19_deep_layer_cnn(image_id, size)
     #        size = (stacked.shape[0], stacked.shape[1])
 
-            for y in range(0, image_width - 9, step_size):
-                for x in range(0, image_height - 9, step_size):
+            for y in range(0, image_width - step_size, step_size):
+                for x in range(0, image_height - step_size, step_size):
                     x_data_l = np.empty((0, 9, 9, 19), float)
                     x_data = stacked[y:y + win_shape[1], x:x + win_shape[0]]
                     x_data_l = np.append(x_data_l,[x_data],axis=0)
@@ -173,7 +173,7 @@ def random_split(seq, number):
 def cnn_model_9_9():
     img_rows, img_cols = 9, 9
     # number of convolutional filters to use
-    nb_filters = 128
+    nb_filters = 64
     # size of pooling area for max pooling
     nb_pool = 2
     # convolution kernel size
@@ -194,11 +194,11 @@ def cnn_model_9_9():
     #model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Dense(25, init='normal', activation='relu'))
+    model.add(Dense(20, init='normal', activation='relu'))
     model.add(BatchNormalization())
     #model.add(Activation('relu'))
     #model.add(Dropout(0.5))
-    model.add(Dense(1, init='normal', activation='sigmoid'))
+    model.add(Dense(1, init='normal', activation='softmax'))
     #model.add(Activation('softmax'))
 
     model.compile(loss='binary_crossentropy', optimizer='rmsprop')
@@ -233,7 +233,7 @@ def train_cnn_9_9(training_images, class_id, training_epochs):
     image_ids
     '''
     start = time.time()
-    generator = sliding_window_9_9(training_images, 18, [9, 9], class_id)
+    generator = sliding_window_9_9(training_images, 9, [9, 9], class_id)
     model=cnn_model_9_9()
 #    print('x_data shape', x_data.shape)
     
@@ -303,13 +303,13 @@ def predict_cnn_9_9(image_id, class_id):
     This is to run inference on any of the images.
     '''
     start = time.time()
-    generator = sliding_window_9_9_pred([image_id], 9, [9, 9])
+    generator = sliding_window_9_9_pred([image_id], 18, [9, 9])
     
     model=load_model(RUN_DIR + '/cnn_model.h5')
     #model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
     print("Loaded model from disk")
     y_pred = []
-    for i in range(0, 136161):
+    for i in range(0, 34040):
         pred = model.predict(next(generator))[0][0]
         if i%1000 == 0:
             print(i)
@@ -319,37 +319,9 @@ def predict_cnn_9_9(image_id, class_id):
         
     y_pred = np.asarray(y_pred)
     print(y_pred.shape)
-    pred_image = y_pred.reshape(369,369)
+    pred_image = y_pred.reshape(123,123)
     print('It took', time.time()-start, 'seconds.')
     return pred_image
-
-
-
-def random_search_for_hyperpara(training_images, class_id):
-    '''
-    This is a methdo to search for good hyperparameters.
-    '''
-    x_data = []
-    y_data = []
-    for image_id in training_images:
-        [x_part, y_part] = create_dataset_cnn(image_id, class_id)
-        x_data.extend(x_part)
-        y_data.extend(y_part)
-    x_data = np.array(x_data)
-    y_data = np.array(y_data)
-
-    x_train, _, y_train, _ = train_test_split(x_data, y_data,
-                                              test_size=0.96,
-                                              random_state=42)
-    n_iter_search = 20
-    clf = RandomForestClassifier(n_estimators=100, n_jobs=-1)
-    random_search = RandomizedSearchCV(clf, param_distributions=PARAM_DIST,
-                                       n_iter=n_iter_search)
-    start = time.time()
-    random_search.fit(x_train, y_train)
-    print("RandomizedSearchCV took %.2f seconds for %d candidates"
-          " parameter settings." % ((time.time() - start), n_iter_search))
-    report(random_search.cv_results_)
 
 
 def report(results, n_top=3):
@@ -386,7 +358,7 @@ def retrain_all():
 
 class_id = 1
 test_sample_size = 10
-training_epochs = 3
+training_epochs = 14
 
 #train_cnn_auto(class_id, test_sample_size, training_epochs)
 
@@ -394,10 +366,11 @@ training_epochs = 3
 #training_images: ['6110_1_2', '6120_2_0']
 #training_images = cnn_data_util.get_images_with_classes([class_id])
 #train_cnn_9_9(['6110_1_2', '6120_2_0'], class_id, training_epochs)
-#train_cnn_9_9(['6110_1_2'], class_id, training_epochs)
-pred_im = predict_cnn_9_9('6060_2_3', class_id)
+#train_cnn_9_9(['6110_1_2','6120_2_2','6060_2_3','6120_2_0','6150_0_3',
+#               '6100_1_3','6140_1_2'], class_id, training_epochs)
+pred_im = predict_cnn_9_9('6140_1_2', class_id)
 plt.imshow(pred_im * 255)
-image_id = '6120_2_0'
+image_id = '6110_1_2'
 #image_id = '6120_2_2'
 #image_id = '6060_2_3'
 #image_id = '6150_0_3'
