@@ -303,7 +303,7 @@ def predict_cnn_9_9(image_id, class_id):
     This is to run inference on any of the images.
     '''
     start = time.time()
-    generator = sliding_window_9_9_pred([image_id], 18, [9, 9])
+    generator = sliding_window_9_9_pred([image_id], 9, [9, 9])
     
     model=load_model(RUN_DIR + '/cnn_model.h5')
     #model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
