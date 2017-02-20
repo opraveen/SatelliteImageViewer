@@ -39,14 +39,9 @@ regardless of whether it is our training, test, and will return a Mask.
 import time
 import random
 import numpy as np
+np.random.seed(42)
 import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score # leave import for later.
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-from sklearn.externals import joblib
-from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import randint as sp_randint
 import cnn_data_util
 
 from keras.models import Sequential
@@ -57,20 +52,16 @@ from keras.layers import Flatten
 from keras.layers import Reshape
 from keras.layers import Permute
 from keras.layers import Convolution2D
-from keras.layers import Deconvolution2D
 from keras.layers import MaxPooling2D
-from keras.layers.convolutional import UpSampling2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.convolutional import ZeroPadding2D
-from keras.layers.core import Lambda
-from keras.optimizers import SGD
-from keras import backend as K
+#from keras import backend as K
 from keras.models import model_from_json
 from keras.models import load_model
 from keras.utils.np_utils import to_categorical
+from keras.optimizers import SGD
+from keras.utils.np_utils import to_categorical
 # from pylab import *
-
-
 
 
 image_width = 3321
@@ -85,39 +76,8 @@ CLASS_1[0] = 2692557
 CLASS_1[1] = 307443
 PARAMETERS_BY_CLASS = {}
 PARAMETERS_BY_CLASS[1] = CLASS_1
-def create_dataset_cnn(stacked, mask, win_width, win_height):
-    '''
-    Return Dataset for one image both X and y data as a list.
 
 
-    '''
-    x_and_y = np.zeros(win_width, win_height, 20)
-    x_and_y[:, :, 0] = stacked[win_width, win_height, 0]
-    x_and_y[:, :, 1] = stacked[win_width, win_height, 1]
-    x_and_y[:, :, 2] = stacked[win_width, win_height, 2]
-    x_and_y[:, :, 3] = stacked[win_width, win_height, 3]
-    x_and_y[:, :, 4] = stacked[win_width, win_height, 4]
-    x_and_y[:, :, 5] = stacked[win_width, win_height, 5]
-    x_and_y[:, :, 6] = stacked[win_width, win_height, 6]
-    x_and_y[:, :, 7] = stacked[win_width, win_height, 7]
-    x_and_y[:, :, 8] = stacked[win_width, win_height, 8]
-    x_and_y[:, :, 9] = stacked[win_width, win_height, 9]
-    x_and_y[:, :, 10] = stacked[win_width, win_height, 10]
-    x_and_y[:, :, 11] = stacked[win_width, win_height, 11]
-    x_and_y[:, :, 12] = stacked[win_width, win_height, 12]
-    x_and_y[:, :, 13] = stacked[win_width, win_height, 13]
-    x_and_y[:, :, 14] = stacked[win_width, win_height, 14]
-    x_and_y[:, :, 15] = stacked[win_width, win_height, 15]
-    x_and_y[:, :, 16] = stacked[win_width, win_height, 16]
-    x_and_y[:, :, 17] = stacked[win_width, win_height, 17]
-    x_and_y[:, :, 18] = stacked[win_width, win_height, 18]
-    x_and_y[:, :, 19] = mask[win_width, win_height] # label layer
-    del stacked
-    del mask
-    y_data = x_and_y[:,:,19]
-    x_data = x_and_y[:,:,0:19]
-    del x_and_y
-    return [x_data, y_data]
 
 def sliding_window_9_9(images, step_size, win_shape, class_id):
     '''slide a window across the image'''
@@ -128,15 +88,80 @@ def sliding_window_9_9(images, step_size, win_shape, class_id):
             stacked = cnn_data_util.build_19_deep_layer_cnn(image_id, size)
     #        size = (stacked.shape[0], stacked.shape[1])
             mask = cnn_data_util.get_mask(image_id, class_id, size)
-    
             for y in range(0, image_width - 9, step_size):
                 for x in range(0, image_height - 9, step_size):
                     x_data_l = np.empty((0, 9, 9, 19), float)
                     x_data = stacked[y:y + win_shape[1], x:x + win_shape[0]]
                     y_data = mask[y:y + win_shape[1], x:x + win_shape[0]]
-                    x_data_l = np.append(x_data_l,[x_data],axis=0)
+                    x_data_l = np.append(x_data_l, [x_data], axis=0)
                     y_data_l = np.array([round(np.average(y_data))])
                     yield (x_data_l, y_data_l)
+
+
+def sliding_window_27_27(images, step_size, win_shape, class_id):
+    '''slide a window across the image'''
+    while True:
+        for image_id in images:
+            print(image_id)
+            size = (image_width, image_height)
+            stacked = cnn_data_util.build_19_deep_layer_cnn(image_id, size)
+    #        size = (stacked.shape[0], stacked.shape[1])
+            mask = cnn_data_util.get_mask(image_id, class_id, size)
+            x_data_l = []# np.empty((0, 27, 27, 19), float)
+            y_data_l =  []#np.empty((0, 2), float)
+            cnt_y = 0
+            cnt = 0
+            for y in range(0, image_width - 27, step_size):
+#                print('y: ', y)
+                cnt_x = 0
+                cnt_y +=1
+
+                for x in range(0, image_height - 27, step_size):
+                    cnt_x +=1
+                    #x_data_l = np.empty((0, 27, 27, 19), float)
+#                    print('x: ', x)
+#                    print('y: ', y)
+                    x_data = stacked[y:y + win_shape[1], x:x + win_shape[0]]
+                    y_data = mask[y:y + win_shape[1], x:x + win_shape[0]]
+                    #x_data_l = np.append(x_data_l, [x_data], axis=0)
+                    x_data_l.append(x_data)
+                    y_data_p = np.array([round(np.average(y_data))])
+                    y_cat = to_categorical(y_data_p,2)[0]
+                    y_data_l.append(y_cat)
+#                    print('y_cat: ', y_cat)
+#                    print('y_cat.shape: ', y_cat.shape)
+                    #np.append(x_data_l, [x_data], axis=0)
+                    #y_data_l = np.append(y_data_l, y_cat, axis=0)
+                    #print('y_cat', y_cat)
+                    
+                    #print(cnt_x)
+                    cnt += 1
+                    if cnt==2684:
+                        ret_x = np.array(x_data_l)
+                        ret_y = np.array(y_data_l)
+                        x_data_l = []
+                        y_data_l =  []
+                        cnt = 0
+                        yield (ret_x, ret_y)
+
+def sliding_window_27_27_pred(image_id, step_size, win_shape):
+    '''slide a window across the image'''
+#    while True:
+#        for image_id in images:
+    print(image_id)
+    size = (image_width, image_height)
+    stacked = cnn_data_util.build_19_deep_layer_cnn(image_id, size)
+    #        size = (stacked.shape[0], stacked.shape[1])
+    x_data_l = []
+    for y in range(0, image_width, step_size):
+        for x in range(0, image_height, step_size):
+            #x_data_l = np.empty((0, 27, 27, 19), float)
+            x_data = stacked[y:y + win_shape[1], x:x + win_shape[0]]
+            #x_data_l = np.append(x_data_l, [x_data], axis=0)
+            x_data_l.append(x_data)
+    return np.array(x_data_l)
+
+
                     
 def sliding_window_9_9_pred(images, step_size, win_shape):
     '''slide a window across the image'''
@@ -151,8 +176,9 @@ def sliding_window_9_9_pred(images, step_size, win_shape):
                 for x in range(0, image_height - step_size, step_size):
                     x_data_l = np.empty((0, 9, 9, 19), float)
                     x_data = stacked[y:y + win_shape[1], x:x + win_shape[0]]
-                    x_data_l = np.append(x_data_l,[x_data],axis=0)
-                    yield (x_data_l)
+                    x_data_l = np.append(x_data_l, [x_data], axis=0)
+                    yield x_data_l
+
 #generator = sliding_window_9_9(['6110_1_2', '6120_2_0'], 3, [9,9], 1)
 #next(generator)
 
@@ -173,7 +199,7 @@ def random_split(seq, number):
 def cnn_model_9_9():
     img_rows, img_cols = 9, 9
     # number of convolutional filters to use
-    nb_filters = 64
+    nb_filters = 128
     # size of pooling area for max pooling
     nb_pool = 2
     # convolution kernel size
@@ -188,24 +214,75 @@ def cnn_model_9_9():
 
     model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
     model.add(Activation('relu'))
+    
     model.add(BatchNormalization())
     model.add(ZeroPadding2D(padding=(1, 1)))
-    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
-    #model.add(Dropout(0.25))
+#    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+#    model.add(Dropout(0.05))
 
     model.add(Flatten())
-    model.add(Dense(20, init='normal', activation='relu'))
-    model.add(BatchNormalization())
-    #model.add(Activation('relu'))
-    #model.add(Dropout(0.5))
-    model.add(Dense(1, init='normal', activation='softmax'))
+#    model.add(Dense(10, init='normal', activation='relu'))
+#    model.add(BatchNormalization())
+#    #model.add(Activation('relu'))
+##    model.add(Dropout(0.5))
+#    model.add(Dense(10, init='normal', activation='relu'))
+#    model.add(BatchNormalization())
+    model.add(Dense(1, init='normal', activation='sigmoid'))
     #model.add(Activation('softmax'))
-
-    model.compile(loss='binary_crossentropy', optimizer='rmsprop')
+#    sgd = SGD(lr=0.0001, decay=1e-6, momentum=0.9, nesterov=True)
+#    model.compile(loss='binary_crossentropy',optimizer= sgd,metrics=['mean_squared_error'])
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['mean_squared_error'])
 
     return model
 
-def train_cnn_auto(class_id, num_test_images, training_epochs):
+def cnn_model_27_27():
+    img_rows, img_cols = 27, 27
+    # number of convolutional filters to use
+    nb_filters = 128
+    # size of pooling area for max pooling
+    nb_pool = 2
+    # convolution kernel size
+    nb_conv = 3
+    model = Sequential()
+
+    model.add(Convolution2D(nb_filters, nb_conv, nb_conv,
+                            border_mode='valid',
+                            input_shape=(img_rows, img_cols, 19)))
+    model.add(Activation('relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.1))
+    model.add(ZeroPadding2D(padding=(1, 1)))
+
+    model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
+    model.add(Activation('relu'))  
+    model.add(BatchNormalization())
+    model.add(Dropout(0.1))
+    model.add(ZeroPadding2D(padding=(1, 1)))
+    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+    
+    model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
+    model.add(Activation('relu'))  
+    model.add(BatchNormalization())
+    model.add(Dropout(0.1))
+    model.add(ZeroPadding2D(padding=(1, 1)))
+    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+
+    model.add(Flatten())
+    model.add(Dense(50, init='normal', activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(50, init='normal', activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dense(2, init='normal', activation='softmax'))
+    #model.add(Activation('softmax'))
+#    sgd = SGD(lr=0.0001, decay=1e-6, momentum=0.9, nesterov=True)
+#    model.compile(loss='binary_crossentropy',optimizer= sgd,metrics=['mean_squared_error'])
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+
+    return model
+
+def train_cnn_auto_9_9(class_id, num_test_images, training_epochs):
     '''
     this is a quick train sequence. makes some assumptions, but if you just
     want to train up a class this is the function for you.
@@ -224,6 +301,25 @@ def train_cnn_auto(class_id, num_test_images, training_epochs):
         print(image)
 
 
+def train_cnn_auto_27_27(class_id, num_test_images, training_epochs):
+    '''
+    this is a quick train sequence. makes some assumptions, but if you just
+    want to train up a class this is the function for you.
+    '''
+    images = cnn_data_util.get_images_with_classes([class_id])
+
+    split = random_split(images, num_test_images)
+    print('images:', images)
+    test_images = split[0]
+    print('test_images:', test_images)
+    training_images = split[1]
+    print('training_images:', training_images)
+    train_cnn_27_27(training_images, class_id, training_epochs)
+    print('These are your test images.')
+    for image in test_images:
+        print(image)
+    
+
 
 def train_cnn_9_9(training_images, class_id, training_epochs):
     '''
@@ -234,68 +330,60 @@ def train_cnn_9_9(training_images, class_id, training_epochs):
     '''
     start = time.time()
     generator = sliding_window_9_9(training_images, 9, [9, 9], class_id)
-    model=cnn_model_9_9()
-#    print('x_data shape', x_data.shape)
-    
-    #model.fit(x_data, y_data, validation_split=.25, batch_size=1,nb_epoch=training_epochs)
-    model.fit_generator(generator, samples_per_epoch=34040,
-                        nb_epoch = training_epochs, verbose=2,
+    model = cnn_model_9_9()
+    model.fit_generator(generator, samples_per_epoch=136161,
+                        nb_epoch=training_epochs, verbose=2,
 #                        nb_val_samples=200,
                         class_weight=None)
+    model_json = model.to_json()
+    with open('models/cnn_9_9_class_' + str(class_id) + '.json', 'w') as json_file:
+        json_file.write(model_json)
     # serialize weights to HDF5
-    model.save(RUN_DIR + '/cnn_model.h5')
-    model.save_weights(RUN_DIR + '/cnn_weights.h5')
+    path = 'models/cnn_9_9_class_' + str(class_id) + 'cnn_weights.h5'
+    model.save_weights(path)
     print("Saved model to disk")
-
     print('It took', time.time()-start, 'seconds.')
 
 
+def train_cnn_27_27(training_images, class_id, training_epochs):
+    '''
+    This is a more honest trainer, but a little more work in doing your prep
+    work. That does not mean you need to change the function, but you need to
+    pull out you own test data, and provide this function with a list of
+    image_ids
+    '''
+    start = time.time()
+    generator = sliding_window_27_27(training_images, 27, [27, 27], class_id)
+    model = cnn_model_27_27()
+    #uncomment load_weights to resume training. Model must not have changed. duh
+    #model.load_weights('models/cnn_27_27_class_' + str(class_id) + 'cnn_weights.h5')
+    class_weight_d = {0:1, 1:40}
+    model.fit_generator(generator, samples_per_epoch=2684,
+                        nb_epoch=training_epochs, verbose=2,
+#                        nb_val_samples=200,
+                        class_weight=class_weight_d)
+    model_json = model.to_json()
+    with open('models/cnn_27_27_class_' + str(class_id) + '.json', 'w') as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    path = 'models/cnn_27_27_class_' + str(class_id) + 'cnn_weights.h5'
+    model.save_weights(path)
+    print("Saved model to disk")
+    print('It took', time.time()-start, 'seconds.')
 
+    
 def evaluate_cnn(image_id, class_id):
     '''
     This is to test your holdout images.
     '''
-    x_data = np.empty((0,image_width,image_height,19), float)
-    y_data = np.empty((0,image_width*image_height,2), float)
-    y_tmp = np.zeros((image_width*image_height,2),int)
-
-    [x_part, y_part] = create_dataset_cnn(image_id, class_id)
-    print(np.count_nonzero(y_part))
-    print(np.count_nonzero(y_part==0))
-    y_part=y_part.astype(int)
-    y_part=y_part.reshape(image_width*image_height)
-    y_tmp=to_categorical(y_part,2)
-    x_data=np.append(x_data,[x_part],axis=0)
-    y_data=np.append(y_data,[y_tmp],axis=0)
-
-    model=load_model(RUN_DIR + '/cnn_model.h5')
-    print("Loaded model from disk")
-
-
-    results=model.evaluate(x_data,y_data,batch_size=1)
-    return results
-
+    pass
 
 
 def predict_cnn_proba(image_id, class_id):
     '''
-    This is to run inference on any of the images.
+    This is to run inference on any of the images probablities(psuedo).
     '''
-    sliding_window_9_9_pred(images, step_size, win_shape)
-
-    model=load_model(RUN_DIR + '/cnn_model.h5')
-    #model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
-    print("Loaded model from disk")
-    y_data_p = model.predict(x_data,batch_size=1)
-    pred_image_1 = np.zeros((image_width*image_height))
-    pred_image_1 = y_data_p[:,:,0]
-    pred_image = pred_image_1.reshape(image_width,image_height)
-#    for row in pred_image:
-#        print(row)
-#    pred_image[pred_image <.95]=0
-#    pred_image[pred_image >.95]=1
-
-    return pred_image * 255
+    pass
 
 
 def predict_cnn_9_9(image_id, class_id):
@@ -304,20 +392,79 @@ def predict_cnn_9_9(image_id, class_id):
     '''
     start = time.time()
     generator = sliding_window_9_9_pred([image_id], 9, [9, 9])
-    
-    model=load_model(RUN_DIR + '/cnn_model.h5')
-    #model.compile(loss='categorical_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    json_file = open('models/cnn_9_9_class_' + str(class_id) + '.json', 'r')
+    loaded_model_json = json_file.read()
+    loaded_model = model_from_json(loaded_model_json)
+    json_file.close()
+    loaded_model.load_weights('models/cnn_9_9_class_' + str(class_id) + 'cnn_weights.h5')
     print("Loaded model from disk")
     y_pred = []
-    for i in range(0, 34040):
-        pred = model.predict(next(generator))[0][0]
-        if i%1000 == 0:
-            print(i)
-            print('pred: ', pred)
-        #print('pred: ', pred)
+    mask = cnn_data_util.get_mask(image_id, class_id, (369,369))
+    mask = mask.reshape(136161)
+    TP = 0
+    FP = 0
+    TN = 0
+    FN = 0
+    for i in range(0, 136161):
+        pred = loaded_model.predict(next(generator))[0][0]
+        if round(pred) == 0 and mask[i] == 0:
+            TN +=1
+        if round(pred) == 1 and mask[i] == 1:
+            TP +=1
+        if round(pred) == 1 and mask[i] == 0:
+            FP +=1
+        if round(pred) == 0 and mask[i] == 1:
+            FN +=1
         y_pred.append(round(pred))
-        
     y_pred = np.asarray(y_pred)
+    print('TP', TP)
+    print('FP', FP)
+    print('TN', TN)
+    print('FN', FN)
+    print(y_pred.shape)
+    pred_image = y_pred.reshape(369,369)
+    print('It took', time.time()-start, 'seconds.')
+    return pred_image
+
+def predict_cnn_27_27(image_id, class_id):
+    '''
+    This is to run inference on any of the images.
+    '''
+    start = time.time()
+    x_data = sliding_window_27_27_pred(image_id, 27, [27, 27])
+    json_file = open('models/cnn_27_27_class_' + str(class_id) + '.json', 'r')
+    loaded_model_json = json_file.read()
+    loaded_model = model_from_json(loaded_model_json)
+    json_file.close()
+    loaded_model.load_weights('models/cnn_27_27_class_' + str(class_id) + 'cnn_weights.h5')
+    print("Loaded model from disk")
+    y_pred = []
+    mask = cnn_data_util.get_mask(image_id, class_id, (123,123))
+    mask = mask.reshape(15129)
+    TP = 0
+    FP = 0
+    TN = 0
+    FN = 0
+    pred_i = loaded_model.predict(x_data)
+    for i in range(0, 15129):
+        #print('pred_i: ', pred_i)
+        pred = pred_i[i][0]
+        #print('pred: ', pred)
+        if round(pred) == 0 and mask[i] == 0:
+            TN +=1
+        if round(pred) == 1 and mask[i] == 1:
+            TP +=1
+        if round(pred) == 1 and mask[i] == 0:
+            FP +=1
+        if round(pred) == 0 and mask[i] == 1:
+            FN +=1
+        #y_pred.append(round(pred))
+        y_pred.append(pred)
+    y_pred = np.asarray(y_pred)
+    print('TP', TP)
+    print('FP', FP)
+    print('TN', TN)
+    print('FN', FN)
     print(y_pred.shape)
     pred_image = y_pred.reshape(123,123)
     print('It took', time.time()-start, 'seconds.')
@@ -356,11 +503,11 @@ def retrain_all():
         train_random_forest_auto(i, 0)
 
 
-class_id = 1
-test_sample_size = 10
-training_epochs = 14
+class_id = 3
+test_sample_size = 3
+training_epochs = 300
 
-#train_cnn_auto(class_id, test_sample_size, training_epochs)
+train_cnn_auto_27_27(class_id, test_sample_size, training_epochs)
 
 #train_cnn(class_1_ids_train, class_id)
 #training_images: ['6110_1_2', '6120_2_0']
@@ -368,9 +515,26 @@ training_epochs = 14
 #train_cnn_9_9(['6110_1_2', '6120_2_0'], class_id, training_epochs)
 #train_cnn_9_9(['6110_1_2','6120_2_2','6060_2_3','6120_2_0','6150_0_3',
 #               '6100_1_3','6140_1_2'], class_id, training_epochs)
-pred_im = predict_cnn_9_9('6140_1_2', class_id)
-plt.imshow(pred_im * 255)
-image_id = '6110_1_2'
+#pred_im = predict_cnn_27_27('6120_2_0', class_id)
+#plt.imsave('pred_im_{0}'.format('6120_2_0'), pred_im * 255)
+#plt.imshow(pred_im * 255)
+#mask = cnn_data_util.get_mask('6110_3_1', class_id, (123, 123))
+#plt.imshow(mask * 255)
+#6100_1_3
+#697s - loss: 0.3051 - mean_squared_error: 0.0829
+#Saved model to disk
+#It took 17322.916904449463 seconds.
+#These are your test images.
+#6070_2_3
+#6120_2_2
+#6140_3_1
+
+
+
+
+
+#train_cnn_auto_9_9(class_id, test_sample_size, training_epochs)
+#image_id = '6110_1_2'
 #image_id = '6120_2_2'
 #image_id = '6060_2_3'
 #image_id = '6150_0_3'
