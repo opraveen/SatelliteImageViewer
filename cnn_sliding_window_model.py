@@ -105,36 +105,21 @@ def sliding_window_27_27(images, step_size, win_shape, class_id):
             print(image_id)
             size = (image_width, image_height)
             stacked = cnn_data_util.build_19_deep_layer_cnn(image_id, size)
-    #        size = (stacked.shape[0], stacked.shape[1])
             mask = cnn_data_util.get_mask(image_id, class_id, size)
             x_data_l = []# np.empty((0, 27, 27, 19), float)
             y_data_l =  []#np.empty((0, 2), float)
-            cnt_y = 0
             cnt = 0
             for y in range(0, image_width - 27, step_size):
-#                print('y: ', y)
-                cnt_x = 0
-                cnt_y +=1
-
                 for x in range(0, image_height - 27, step_size):
-                    cnt_x +=1
-                    #x_data_l = np.empty((0, 27, 27, 19), float)
-#                    print('x: ', x)
-#                    print('y: ', y)
                     x_data = stacked[y:y + win_shape[1], x:x + win_shape[0]]
                     y_data = mask[y:y + win_shape[1], x:x + win_shape[0]]
-                    #x_data_l = np.append(x_data_l, [x_data], axis=0)
                     x_data_l.append(x_data)
+                    del x_data
                     y_data_p = np.array([round(np.average(y_data))])
+                    del y_data
                     y_cat = to_categorical(y_data_p,2)[0]
                     y_data_l.append(y_cat)
-#                    print('y_cat: ', y_cat)
-#                    print('y_cat.shape: ', y_cat.shape)
-                    #np.append(x_data_l, [x_data], axis=0)
-                    #y_data_l = np.append(y_data_l, y_cat, axis=0)
-                    #print('y_cat', y_cat)
-                    
-                    #print(cnt_x)
+                    del y_cat
                     cnt += 1
                     if cnt==2684:
                         ret_x = np.array(x_data_l)
@@ -251,14 +236,14 @@ def cnn_model_27_27():
     model.add(Activation('relu'))
     model.add(BatchNormalization())
     model.add(Dropout(0.1))
-    model.add(ZeroPadding2D(padding=(1, 1)))
+    #model.add(ZeroPadding2D(padding=(1, 1)))
 
     model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
     model.add(Activation('relu'))  
     model.add(BatchNormalization())
     model.add(Dropout(0.1))
-    model.add(ZeroPadding2D(padding=(1, 1)))
-    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+    #model.add(ZeroPadding2D(padding=(1, 1)))
+    #model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
     
     model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
     model.add(Activation('relu'))  
@@ -270,7 +255,7 @@ def cnn_model_27_27():
     model.add(Flatten())
     model.add(Dense(50, init='normal', activation='relu'))
     model.add(BatchNormalization())
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
 
     model.add(Dense(50, init='normal', activation='relu'))
     model.add(BatchNormalization())
@@ -357,7 +342,7 @@ def train_cnn_27_27(training_images, class_id, training_epochs):
     model = cnn_model_27_27()
     #uncomment load_weights to resume training. Model must not have changed. duh
     #model.load_weights('models/cnn_27_27_class_' + str(class_id) + 'cnn_weights.h5')
-    class_weight_d = {0:1, 1:40}
+    class_weight_d = {0:1, 1:50}
     model.fit_generator(generator, samples_per_epoch=2684,
                         nb_epoch=training_epochs, verbose=2,
 #                        nb_val_samples=200,
@@ -448,7 +433,7 @@ def predict_cnn_27_27(image_id, class_id):
     pred_i = loaded_model.predict(x_data)
     for i in range(0, 15129):
         #print('pred_i: ', pred_i)
-        pred = pred_i[i][0]
+        pred = pred_i[i][0] #-.35
         #print('pred: ', pred)
         if round(pred) == 0 and mask[i] == 0:
             TN +=1
@@ -458,8 +443,8 @@ def predict_cnn_27_27(image_id, class_id):
             FP +=1
         if round(pred) == 0 and mask[i] == 1:
             FN +=1
-        #y_pred.append(round(pred))
-        y_pred.append(pred)
+        y_pred.append(round(pred))
+        #y_pred.append(pred)
     y_pred = np.asarray(y_pred)
     print('TP', TP)
     print('FP', FP)
@@ -507,7 +492,7 @@ class_id = 3
 test_sample_size = 3
 training_epochs = 300
 
-train_cnn_auto_27_27(class_id, test_sample_size, training_epochs)
+#train_cnn_auto_27_27(class_id, test_sample_size, training_epochs)
 
 #train_cnn(class_1_ids_train, class_id)
 #training_images: ['6110_1_2', '6120_2_0']
@@ -515,9 +500,9 @@ train_cnn_auto_27_27(class_id, test_sample_size, training_epochs)
 #train_cnn_9_9(['6110_1_2', '6120_2_0'], class_id, training_epochs)
 #train_cnn_9_9(['6110_1_2','6120_2_2','6060_2_3','6120_2_0','6150_0_3',
 #               '6100_1_3','6140_1_2'], class_id, training_epochs)
-#pred_im = predict_cnn_27_27('6120_2_0', class_id)
-#plt.imsave('pred_im_{0}'.format('6120_2_0'), pred_im * 255)
-#plt.imshow(pred_im * 255)
+pred_im = predict_cnn_27_27('6120_2_0', class_id)
+plt.imsave('pred_im_{0}'.format('6120_2_0'), pred_im * 255)
+plt.imshow(pred_im * 255)
 #mask = cnn_data_util.get_mask('6110_3_1', class_id, (123, 123))
 #plt.imshow(mask * 255)
 #6100_1_3
