@@ -121,6 +121,37 @@ def get_mask(image_id, class_id, size):
                          wkt_list_pandas)
 
 
+def build_3_deep_layer_cnn(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 19 Layers
+    '''
+    rgbfile = os.path.join(IN_DIR, 'three_band',
+                           '{}.tif'.format(image_id))
+    rgb = tiff.imread(rgbfile).transpose([1, 2, 0])
+    
+    #rgb = tiff.imread(rgbfile).astype(float)
+    rgb = scale_percentile(rgb)
+    rgb_max = np.max(rgb)
+    rgb_min = np.min(rgb)
+    rgb_delta = rgb_max-rgb_min
+    rgb -= rgb_min
+    rgb *= 2.0/rgb_delta
+    rgb -= 1
+#    print('np.max(rgb)', np.max(rgb))
+#    print('np.min(rgb)', np.min(rgb))
+    #print('maximum of rgb is', np.amax(rgb,axis=2).max())
+    #rgb = np.rollaxis(rgb, 0, 3)
+    rgb = cv2.resize(rgb, size)
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 3))
+    stacked_array[:, :, 0] = rgb[:, :, 0]
+    stacked_array[:, :, 1] = rgb[:, :, 1]
+    stacked_array[:, :, 2] = rgb[:, :, 2]
+    del rgb
+    # stacked_array contains the entire image all 19 layers in np array
+    return stacked_array
+
 def build_19_deep_layer_cnn(image_id, size):
     '''
     Return Numpy Array.
