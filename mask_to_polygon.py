@@ -27,9 +27,12 @@ def mask_to_polygons(mask):
     for shape, value in features.shapes(mask.astype(np.int16),
                                 mask = (mask==1),
                                 transform = rasterio.Affine(1.0, 0, 0, 0, 1.0, 0)):
+        del value
         shape1 = shapely.geometry.shape(shape)
-        shape1 = shape1.simplify(2, preserve_topology=True)
+        del shape
+        shape1 = shape1.simplify(1.5, preserve_topology=True)
         all_polygons.append(shape1)
+        del shape1
 
     all_polygons = shapely.geometry.MultiPolygon(all_polygons)
     if not all_polygons.is_valid:
@@ -56,22 +59,23 @@ def create_csv_submission_inner(multi_polygon, img_size, class_type, image_id):
                                    names=['ImageId', 'Xmax', 'Ymin'],
                                    skiprows=1)
     xymax = datut._get_xmax_ymin(grid_sizes_panda, image_id)
+    del grid_sizes_panda
     [x_fact, y_fact] = get_xy_factor(img_size, xymax)
     all_polygons=[]
     for polygon in multi_polygon:
         scaled = affinity.scale(polygon, xfact=x_fact, yfact=y_fact, origin=(0,0))
+        del polygon
         all_polygons.append(scaled)
         #print('scaled: ', scaled)
     all_polygons = shapely.geometry.MultiPolygon(all_polygons)
     if not all_polygons.is_valid:
         all_polygons = all_polygons.buffer(0)
-        #Sometimes buffer() converts a simple Multipolygon to just a Polygon,
-        #need to keep it a Multi throughout
         if all_polygons.type == 'Polygon':
             all_polygons = shapely.geometry.MultiPolygon([all_polygons])
     with open('submission_file.csv', 'a') as csvfile:
         writer = csv.writer(csvfile, lineterminator='\n')
         writer.writerow([image_id, class_type, all_polygons])
+        del all_polygons
     return True
     
 def count_rows_in_submission():

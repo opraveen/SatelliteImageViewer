@@ -156,13 +156,7 @@ def get_mask(image_id, class_id, size):
     return generate_mask(size, image_id, class_id, grid_sizes_panda,
                          wkt_list_pandas)
 
-
-def build_19_deep_layer(image_id, size):
-    '''
-    Return Numpy Array.
-    Height and Width determined by input size parameter.
-    Depth is 19 Layers
-    '''
+def get_ims(image_id, size):
     rgbfile = os.path.join('..', 'data', 'three_band',
                            '{}.tif'.format(image_id))
     rgb = tiff.imread(rgbfile)
@@ -180,6 +174,16 @@ def build_19_deep_layer(image_id, size):
     img_a = tiff.imread(afile)
     img_a = np.rollaxis(img_a, 0, 3)
     img_a = cv2.resize(img_a, size)
+    #ccci_index = get_spectral_analysis(IM_ID)
+    return [rgb, img_m, img_a]
+
+def build_19_deep_layer(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 19 Layers
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
 
     stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 19))
     stacked_array[:, :, 0] = rgb[:, :, 0]
@@ -203,7 +207,537 @@ def build_19_deep_layer(image_id, size):
     stacked_array[:, :, 18] = img_a[:, :, 7]
     return stacked_array
 
+def ccci_index(m, rgb):
+    RE  = cv2.resize(m[5,:,:], (rgb.shape[0], rgb.shape[1])) 
+    MIR = cv2.resize(m[7,:,:], (rgb.shape[0], rgb.shape[1])) 
+    R = rgb[:,:,0]
+    # canopy chloropyll content index
+    return (MIR-RE)/(MIR+RE)*(MIR-R)/(MIR+R)
 
+#def stretch_8bit(bands, lower_percent=2, higher_percent=98):
+#    out = np.zeros_like(bands).astype(np.float32)
+#    for i in range(3):
+#        a = 0 
+#        b = 1 
+#        c = np.percentile(bands[:,:,i], lower_percent)
+#        d = np.percentile(bands[:,:,i], higher_percent)        
+#        t = a + (bands[:,:,i] - c) * (b - a) / (d - c)    
+#        t[t<a] = a
+#        t[t>b] = b
+#        out[:,:,i] =t
+#    return out.astype(np.float32)
+
+
+
+def get_spectral_analysis(IM_ID):
+    # read rgb and m bands
+    rgb = tiff.imread('../data/three_band/{}.tif'.format(IM_ID))
+    rgb = np.rollaxis(rgb, 0, 3)
+    m = tiff.imread('../data/sixteen_band/{}_M.tif'.format(IM_ID))
+    
+    # get our index
+    return ccci_index(m, rgb) 
+    
+    # you can look on histogram and pick your favorite threshold value(0.11 is my best)
+    #binary = (CCCI > 0.11).astype(np.float32)
+    
+def build_9_deep_layer_class_1(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 9 Layers
+    most important Features:
+    1. feature 3 (0.269457)
+    2. feature 10 (0.175592)
+    3. feature 11 (0.068455)
+    4. feature 4 (0.063344)
+    5. feature 9 (0.050757)
+    6. feature 6 (0.044132)
+    7. feature 7 (0.042846)
+    8. feature 0 (0.039941)
+    9. feature 2 (0.039165)
+    10. feature 8 (0.031848) remove
+    11. feature 5 (0.027490)remove
+    12. feature 16 (0.027265)remove
+    13. feature 1 (0.024750)remove
+    14. feature 14 (0.019526)remove
+    15. feature 18 (0.018274)remove
+    16. feature 13 (0.018085)remove
+    17. feature 17 (0.013249)remove
+    18. feature 12 (0.013172)remove
+    19. feature 15 (0.012651)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    stacked_array[:, :, 1] = rgb[:, :, 2]
+    stacked_array[:, :, 2] = img_m[:, :, 0]
+    stacked_array[:, :, 3] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    stacked_array[:, :, 4] = img_m[:, :, 3]
+    stacked_array[:, :, 5] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    stacked_array[:, :, 6] = img_m[:, :, 6]
+    stacked_array[:, :, 7] = img_m[:, :, 7]
+    stacked_array[:, :, 8] = img_a[:, :, 0]
+    #stacked_array[:, :, 12] = img_a[:, :, 1]
+    #stacked_array[:, :, 13] = img_a[:, :, 2]
+    #stacked_array[:, :, 14] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    #stacked_array[:, :, 18] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_2(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 9 Layers
+    most important Features:
+    1. feature 10 (0.108337)
+    2. feature 9 (0.105984)
+    3. feature 18 (0.076958)
+    4. feature 0 (0.064350)
+    5. feature 1 (0.059704)
+    6. feature 11 (0.055858)
+    7. feature 3 (0.054730)
+    8. feature 7 (0.048406)
+    9. feature 2 (0.048255)
+    10. feature 4 (0.046878)remove
+    11. feature 6 (0.044442)remove
+    12. feature 16 (0.044235)remove
+    13. feature 5 (0.041137)remove
+    14. feature 17 (0.038147)remove
+    15. feature 8 (0.037792)remove
+    16. feature 15 (0.034890)remove
+    17. feature 14 (0.034820)remove
+    18. feature 12 (0.028320)remove
+    19. feature 13 (0.026759)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    stacked_array[:, :, 0] = rgb[:, :, 0]
+    stacked_array[:, :, 1] = rgb[:, :, 1]
+    stacked_array[:, :, 2] = rgb[:, :, 2]
+    stacked_array[:, :, 3] = img_m[:, :, 0]
+    #stacked_array[:, :, 4] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    #stacked_array[:, :, 6] = img_m[:, :, 3]
+    stacked_array[:, :, 4] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    stacked_array[:, :, 5] = img_m[:, :, 6]
+    stacked_array[:, :, 6] = img_m[:, :, 7]
+    stacked_array[:, :, 7] = img_a[:, :, 0]
+    #stacked_array[:, :, 12] = img_a[:, :, 1]
+    #stacked_array[:, :, 13] = img_a[:, :, 2]
+    #stacked_array[:, :, 14] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    stacked_array[:, :, 8] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_3(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 9 Layers
+    Feature ranking:
+    1. feature 10 (0.166690)
+    2. feature 6 (0.088873)
+    3. feature 0 (0.085471)
+    4. feature 9 (0.072393)
+    5. feature 3 (0.068775)
+    6. feature 2 (0.063699)
+    7. feature 11 (0.054214)
+    8. feature 4 (0.048185)
+    9. feature 16 (0.047797)
+    10. feature 7 (0.045747)remove
+    11. feature 8 (0.041771)remove
+    12. feature 1 (0.038706)remove
+    13. feature 5 (0.030713)remove
+    14. feature 18 (0.030528)remove
+    15. feature 14 (0.029737)remove
+    16. feature 17 (0.025076)remove
+    17. feature 13 (0.023516)remove
+    18. feature 15 (0.020040)remove
+    19. feature 12 (0.018069)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    stacked_array[:, :, 1] = rgb[:, :, 2]
+    stacked_array[:, :, 2] = img_m[:, :, 0]
+    stacked_array[:, :, 3] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    stacked_array[:, :, 4] = img_m[:, :, 3]
+    #stacked_array[:, :, 7] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    stacked_array[:, :, 5] = img_m[:, :, 6]
+    stacked_array[:, :, 6] = img_m[:, :, 7]
+    stacked_array[:, :, 7] = img_a[:, :, 0]
+    #stacked_array[:, :, 12] = img_a[:, :, 1]
+    #stacked_array[:, :, 13] = img_a[:, :, 2]
+    #stacked_array[:, :, 14] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    stacked_array[:, :, 8] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    #stacked_array[:, :, 18] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_4(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 9 Layers
+    Feature ranking:
+    1. feature 9 (0.099009)
+    2. feature 11 (0.075683)
+    3. feature 0 (0.071631)
+    4. feature 6 (0.064858)
+    5. feature 8 (0.062835)
+    6. feature 4 (0.058600)
+    7. feature 18 (0.057539)
+    8. feature 3 (0.057299)
+    9. feature 10 (0.051589)
+    10. feature 2 (0.047413)remove
+    11. feature 1 (0.046885)remove
+    12. feature 17 (0.045164)remove
+    13. feature 7 (0.043489)remove
+    14. feature 5 (0.042154)remove
+    15. feature 14 (0.038454)remove
+    16. feature 12 (0.036900)remove
+    17. feature 13 (0.035172)remove
+    18. feature 16 (0.033595)remove
+    19. feature 15 (0.031731)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    #stacked_array[:, :, 2] = rgb[:, :, 2]
+    stacked_array[:, :, 1] = img_m[:, :, 0]
+    stacked_array[:, :, 2] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    stacked_array[:, :, 3] = img_m[:, :, 3]
+    #stacked_array[:, :, 7] = img_m[:, :, 4]
+    stacked_array[:, :, 4] = img_m[:, :, 5]
+    stacked_array[:, :, 5] = img_m[:, :, 6]
+    stacked_array[:, :, 6] = img_m[:, :, 7]
+    stacked_array[:, :, 7] = img_a[:, :, 0]
+    #stacked_array[:, :, 12] = img_a[:, :, 1]
+    #stacked_array[:, :, 13] = img_a[:, :, 2]
+    #stacked_array[:, :, 14] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    stacked_array[:, :, 8] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_5(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 9 Layers
+    Feature ranking:
+    1. feature 6 (0.126013)
+    2. feature 7 (0.081846)
+    3. feature 0 (0.079264)
+    4. feature 11 (0.074018)
+    5. feature 9 (0.073754)
+    6. feature 5 (0.068345)
+    7. feature 1 (0.065472)
+    8. feature 3 (0.065141)
+    9. feature 4 (0.061818)
+    10. feature 2 (0.057855)remove
+    11. feature 10 (0.045017)remove
+    12. feature 18 (0.039035)remove
+    13. feature 8 (0.029005)remove
+    14. feature 14 (0.025850)remove
+    15. feature 13 (0.024511)remove
+    16. feature 12 (0.023831)remove
+    17. feature 16 (0.023195)remove
+    18. feature 17 (0.018316)remove
+    19. feature 15 (0.017714)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    stacked_array[:, :, 0] = rgb[:, :, 0]
+    stacked_array[:, :, 1] = rgb[:, :, 1]
+    #stacked_array[:, :, 2] = rgb[:, :, 2]
+    stacked_array[:, :, 2] = img_m[:, :, 0]
+    stacked_array[:, :, 3] = img_m[:, :, 1]
+    stacked_array[:, :, 4] = img_m[:, :, 2]
+    stacked_array[:, :, 5] = img_m[:, :, 3]
+    stacked_array[:, :, 6] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    stacked_array[:, :, 7] = img_m[:, :, 6]
+    #stacked_array[:, :, 10] = img_m[:, :, 7]
+    stacked_array[:, :, 8] = img_a[:, :, 0]
+    #stacked_array[:, :, 12] = img_a[:, :, 1]
+    #stacked_array[:, :, 13] = img_a[:, :, 2]
+    #stacked_array[:, :, 14] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    #stacked_array[:, :, 18] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_6(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 19 Layers
+    Feature ranking:
+    1. feature 11 (0.173882)
+    2. feature 9 (0.076466)
+    3. feature 16 (0.071707)
+    4. feature 10 (0.067565)
+    5. feature 6 (0.062374)
+    6. feature 15 (0.060454)
+    7. feature 3 (0.059901)
+    8. feature 18 (0.057314)
+    9. feature 12 (0.043994)
+    10. feature 14 (0.037934)remove
+    11. feature 7 (0.037176)remove
+    12. feature 13 (0.036722)remove
+    13. feature 17 (0.035562)remove
+    14. feature 4 (0.034169)remove
+    15. feature 5 (0.033643)remove
+    16. feature 0 (0.032371)remove
+    17. feature 8 (0.027910)remove
+    18. feature 1 (0.027177)remove
+    19. feature 2 (0.023680)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    #stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    #stacked_array[:, :, 2] = rgb[:, :, 2]
+    stacked_array[:, :, 0] = img_m[:, :, 0]
+    #stacked_array[:, :, 4] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    stacked_array[:, :, 1] = img_m[:, :, 3]
+    #stacked_array[:, :, 7] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    stacked_array[:, :, 2] = img_m[:, :, 6]
+    stacked_array[:, :, 3] = img_m[:, :, 7]
+    stacked_array[:, :, 4] = img_a[:, :, 0]
+    stacked_array[:, :, 5] = img_a[:, :, 1]
+    #stacked_array[:, :, 13] = img_a[:, :, 2]
+    #stacked_array[:, :, 14] = img_a[:, :, 3]
+    stacked_array[:, :, 6] = img_a[:, :, 4]
+    stacked_array[:, :, 7] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    stacked_array[:, :, 8] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_7(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 19 Layers
+    Feature ranking:
+    1. feature 4 (0.241473)
+    2. feature 10 (0.169648)
+    3. feature 2 (0.130939)
+    4. feature 3 (0.091364)
+    5. feature 11 (0.068482)
+    6. feature 9 (0.041832)
+    7. feature 5 (0.041223)
+    8. feature 13 (0.034988)
+    9. feature 14 (0.025267)
+    10. feature 18 (0.018525)remove
+    11. feature 1 (0.017937)remove
+    12. feature 15 (0.017327)remove
+    13. feature 12 (0.016472)remove
+    14. feature 6 (0.016456)remove
+    15. feature 8 (0.015975)remove
+    16. feature 17 (0.014198)remove
+    17. feature 7 (0.013897)remove
+    18. feature 16 (0.013255)remove
+    19. feature 0 (0.010742)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    #stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    stacked_array[:, :, 0] = rgb[:, :, 2]
+    stacked_array[:, :, 1] = img_m[:, :, 0]
+    stacked_array[:, :, 2] = img_m[:, :, 1]
+    stacked_array[:, :, 3] = img_m[:, :, 2]
+    #stacked_array[:, :, 6] = img_m[:, :, 3]
+    #stacked_array[:, :, 7] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    stacked_array[:, :, 4] = img_m[:, :, 6]
+    stacked_array[:, :, 5] = img_m[:, :, 7]
+    stacked_array[:, :, 6] = img_a[:, :, 0]
+    #stacked_array[:, :, 12] = img_a[:, :, 1]
+    stacked_array[:, :, 7] = img_a[:, :, 2]
+    stacked_array[:, :, 8] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    #stacked_array[:, :, 18] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_8(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 19 Layers
+    Feature ranking:
+    1. feature 10 (0.267770)
+    2. feature 9 (0.091547)
+    3. feature 4 (0.086734)
+    4. feature 2 (0.070864)
+    5. feature 7 (0.066686)
+    6. feature 3 (0.055117)
+    7. feature 14 (0.050949)
+    8. feature 11 (0.038394)
+    9. feature 8 (0.037389)
+    10. feature 12 (0.036403)remove
+    11. feature 13 (0.030980)remove
+    12. feature 16 (0.030661)remove
+    13. feature 0 (0.026833)remove
+    14. feature 5 (0.023638)remove
+    15. feature 18 (0.022599)remove
+    16. feature 1 (0.018675)remove
+    17. feature 6 (0.016653)remove
+    18. feature 17 (0.015878)remove
+    19. feature 15 (0.012230)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    #stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    stacked_array[:, :, 0] = rgb[:, :, 2]
+    stacked_array[:, :, 1] = img_m[:, :, 0]
+    stacked_array[:, :, 2] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    #stacked_array[:, :, 6] = img_m[:, :, 3]
+    stacked_array[:, :, 3] = img_m[:, :, 4]
+    stacked_array[:, :, 4] = img_m[:, :, 5]
+    stacked_array[:, :, 5] = img_m[:, :, 6]
+    stacked_array[:, :, 6] = img_m[:, :, 7]
+    stacked_array[:, :, 7] = img_a[:, :, 0]
+    #stacked_array[:, :, 12] = img_a[:, :, 1]
+    #stacked_array[:, :, 13] = img_a[:, :, 2]
+    stacked_array[:, :, 8] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    #stacked_array[:, :, 18] = img_a[:, :, 7]
+    return stacked_array
+def build_9_deep_layer_class_9(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 19 Layers
+    Feature ranking:
+    1. feature 10 (0.198984)
+    2. feature 11 (0.120227)
+    3. feature 3 (0.088417)
+    4. feature 18 (0.057698)
+    5. feature 12 (0.051582)
+    6. feature 13 (0.048079)
+    7. feature 6 (0.046951)
+    8. feature 17 (0.044557)
+    9. feature 7 (0.044444)
+    10. feature 14 (0.041786)remove
+    11. feature 16 (0.041302)remove
+    12. feature 9 (0.037124)remove
+    13. feature 4 (0.035811)remove
+    14. feature 15 (0.033760)remove
+    15. feature 8 (0.027676)remove
+    16. feature 2 (0.025126)remove
+    17. feature 0 (0.023295)remove
+    18. feature 1 (0.017317)remove
+    19. feature 5 (0.015864)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    #stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    #stacked_array[:, :, 2] = rgb[:, :, 2]
+    stacked_array[:, :, 0] = img_m[:, :, 0]
+    #stacked_array[:, :, 4] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    stacked_array[:, :, 1] = img_m[:, :, 3]
+    stacked_array[:, :, 2] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    #stacked_array[:, :, 9] = img_m[:, :, 6]
+    stacked_array[:, :, 3] = img_m[:, :, 7]
+    stacked_array[:, :, 4] = img_a[:, :, 0]
+    stacked_array[:, :, 5] = img_a[:, :, 1]
+    stacked_array[:, :, 6] = img_a[:, :, 2]
+    #stacked_array[:, :, 14] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    stacked_array[:, :, 7] = img_a[:, :, 6]
+    stacked_array[:, :, 8] = img_a[:, :, 7]
+    return stacked_array
+
+def build_9_deep_layer_class_10(image_id, size):
+    '''
+    Return Numpy Array.
+    Height and Width determined by input size parameter.
+    Depth is 19 Layers
+    1. feature 9 (0.095195)
+    2. feature 10 (0.085717)
+    3. feature 11 (0.069927)
+    4. feature 3 (0.065219)
+    5. feature 12 (0.053188)
+    6. feature 14 (0.051998)
+    7. feature 4 (0.051198)
+    8. feature 13 (0.050835)
+    9. feature 7 (0.050009)
+    10. feature 6 (0.049671)remove
+    11. feature 0 (0.046510)remove
+    12. feature 18 (0.044545)remove
+    13. feature 8 (0.044031)remove
+    14. feature 16 (0.042715)remove
+    15. feature 15 (0.042282)remove
+    16. feature 2 (0.040344)remove
+    17. feature 1 (0.039613)remove
+    18. feature 5 (0.039079)remove
+    19. feature 17 (0.037925)remove
+    '''
+    [rgb, img_m, img_a] = get_ims(image_id, size)
+
+    stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
+    #stacked_array[:, :, 0] = rgb[:, :, 0]
+    #stacked_array[:, :, 1] = rgb[:, :, 1]
+    #stacked_array[:, :, 2] = rgb[:, :, 2]
+    stacked_array[:, :, 0] = img_m[:, :, 0]
+    stacked_array[:, :, 1] = img_m[:, :, 1]
+    #stacked_array[:, :, 5] = img_m[:, :, 2]
+    #stacked_array[:, :, 6] = img_m[:, :, 3]
+    stacked_array[:, :, 2] = img_m[:, :, 4]
+    #stacked_array[:, :, 8] = img_m[:, :, 5]
+    stacked_array[:, :, 3] = img_m[:, :, 6]
+    stacked_array[:, :, 4] = img_m[:, :, 7]
+    stacked_array[:, :, 5] = img_a[:, :, 0]
+    stacked_array[:, :, 6] = img_a[:, :, 1]
+    stacked_array[:, :, 7] = img_a[:, :, 2]
+    stacked_array[:, :, 8] = img_a[:, :, 3]
+    #stacked_array[:, :, 15] = img_a[:, :, 4]
+    #stacked_array[:, :, 16] = img_a[:, :, 5]
+    #stacked_array[:, :, 17] = img_a[:, :, 6]
+    #stacked_array[:, :, 18] = img_a[:, :, 7]
+    return stacked_array
 def _plot_mask_from_contours(raster_img_size, contours, class_value=1):
     img_mask = np.zeros(raster_img_size, np.uint8)
     if contours is None:
