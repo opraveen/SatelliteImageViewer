@@ -234,10 +234,10 @@ def get_spectral_analysis(IM_ID):
     rgb = tiff.imread('../data/three_band/{}.tif'.format(IM_ID))
     rgb = np.rollaxis(rgb, 0, 3)
     m = tiff.imread('../data/sixteen_band/{}_M.tif'.format(IM_ID))
-    
+    m = np.rollaxis(m, 0, 3)
     # get our index
     return ccci_index(m, rgb) 
-    
+
     # you can look on histogram and pick your favorite threshold value(0.11 is my best)
     #binary = (CCCI > 0.11).astype(np.float32)
     
@@ -268,7 +268,6 @@ def build_9_deep_layer_class_1(image_id, size):
     19. feature 15 (0.012651)remove
     '''
     [rgb, img_m, img_a] = get_ims(image_id, size)
-
     stacked_array = np.zeros((rgb.shape[0], rgb.shape[1], 9))
     stacked_array[:, :, 0] = rgb[:, :, 0]
     #stacked_array[:, :, 1] = rgb[:, :, 1]

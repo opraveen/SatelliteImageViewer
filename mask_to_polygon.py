@@ -17,12 +17,13 @@ import data_util as datut
 import pandas as pd
 import csv
 import sys
+
 csv.field_size_limit(sys.maxsize)
 
 
 #SUBMISSION_FILE = pd.read_csv('submission_file.csv',
 #                         names=['ImageId','ClassType', 'MultipolygonWKT'], skiprows=1)
-def mask_to_polygons(mask):
+def mask_to_polygons(mask, class_id):
     all_polygons=[]
     for shape, value in features.shapes(mask.astype(np.int16),
                                 mask = (mask==1),
@@ -30,7 +31,27 @@ def mask_to_polygons(mask):
         del value
         shape1 = shapely.geometry.shape(shape)
         del shape
-        shape1 = shape1.simplify(1.5, preserve_topology=True)
+        if class_id == 1:
+            simp = 15
+        if class_id == 2:
+            simp = 15
+        if class_id == 3:
+            simp = 15
+        if class_id == 4:
+            simp = 15
+        if class_id == 5:
+            simp = 15
+        if class_id == 6:
+            simp = 15
+        if class_id == 7:
+            simp = 15
+        if class_id == 8:
+            simp = 15
+        if class_id == 9:
+            simp = 2
+        if class_id == 10:
+            simp = 2
+        shape1 = shape1.simplify(simp, preserve_topology=True)
         all_polygons.append(shape1)
         del shape1
 

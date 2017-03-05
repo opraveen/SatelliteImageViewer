@@ -169,8 +169,8 @@ PARAMETERS_BY_CLASS[10] = CLASS_10
 #WIDTH = 3350
 #HEIGHT = 1000
 #WIDTH = 1000
-HEIGHT = 2000
-WIDTH = 2000
+HEIGHT = 25
+WIDTH = 25
 #HEIGHT = 500
 #WIDTH = 500
 
@@ -282,13 +282,16 @@ def train_random_forest(training_images, class_id):
     for image_id in training_images:
         [x_part, y_part] = create_dataset(image_id, class_id)
         for i in range(0, len(y_part)):
-            evenup_data(x_data, y_data, x_part[i], y_part[i], class_id)
+            x_data.append(x_part[i])
+            y_data.append(y_part[i])
+            #evenup_data(x_data, y_data, x_part[i], y_part[i], class_id)
         del x_part
         del y_part
-    
+    print('about to count 1s and 0s: ')
+    #print(y_data)
     num_ones = [y for y in y_data if y==1]
-    num_zeros = [y for y in y_data if y==0]
     print('num_ones: ', len(num_ones))
+    num_zeros = [y for y in y_data if y==0]
     print('num_zeros: ', len(num_zeros))
 
     x_data = np.array(x_data)
@@ -517,8 +520,8 @@ def predict_proba(image_id, class_id):
     y_pred = model.predict_proba(x_data)
     print(y_pred[:, 1])
     pred_image = y_pred[:, 1].reshape(HEIGHT, WIDTH)
-    plt.imshow(pred_image * 255)
-    plt.imsave('testplot.png', pred_image * 255)
+#    plt.imshow(pred_image * 255)
+#    plt.imsave('testplot.png', pred_image * 255)
     return pred_image
 
 PARAM_DIST = {"max_depth": [3, None],
@@ -584,10 +587,10 @@ def perf_measure(y_actual, y_pred):
     print(true_pos, '\t', false_pos, '\t', true_neg, '\t', false_neg)
     return(true_pos, false_pos, true_neg, false_neg)
 
-
-
+#img = predict_random_forest('6110_4_0', 3)
+#plt.imshow(img*255)
 def retrain_all():
-    for i in range(1, 10):
+    for i in range(1, 11):
         train_random_forest_auto(i, 0)
 
 #train_random_forest_auto(class_id, num_test_images)
@@ -599,7 +602,7 @@ test_sample_size = 0
 #images = data_util.get_images_with_classes([class_id])
 #random_search_for_hyperpara(images, class_id)
 #train_random_forest(class_1_ids_train, class_id)
-train_random_forest_auto(class_id, test_sample_size)
+#train_random_forest_auto(class_id, test_sample_size)
 #
 #6110_4_0
 #6120_2_0
@@ -634,4 +637,4 @@ cnt = 0
 
       
 #retrain_all()
-#print('done predicting')
+print('done predicting')
