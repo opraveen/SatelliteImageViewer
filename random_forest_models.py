@@ -169,10 +169,12 @@ PARAMETERS_BY_CLASS[10] = CLASS_10
 #WIDTH = 3350
 #HEIGHT = 1000
 #WIDTH = 1000
-HEIGHT = 25
-WIDTH = 25
-#HEIGHT = 500
-#WIDTH = 500
+#HEIGHT = 100
+#WIDTH = 100
+#HEIGHT = 250
+#WIDTH = 250
+HEIGHT = 500
+WIDTH = 500
 
 CLASS_1_ONES = 307443
 CLASS_1_ZEROS = 2692557
@@ -597,8 +599,8 @@ def retrain_all():
 #determine_one_zero_distribution(10)
 #train_random_forest_auto(9, 0)
 
-class_id = 10
-test_sample_size = 0
+class_id = 2
+test_sample_size = 2
 #images = data_util.get_images_with_classes([class_id])
 #random_search_for_hyperpara(images, class_id)
 #train_random_forest(class_1_ids_train, class_id)
@@ -607,9 +609,12 @@ test_sample_size = 0
 #6110_4_0
 #6120_2_0
 #6070_2_3
-#image_id = '6060_2_4'
-#img = predict_random_forest(image_id, class_id)
+#image_id = '6010_0_0'
+#size = '25X25'
+#model = joblib.load('models/{0}/rf_class_{1}.pkl'.format(str(size),str(class_id)))
+#img = predict(image_id, class_id, model)
 #plt.imshow(img*255)
+#plt.imsave('{0}Masks/{1}_{2}.png'.format(str(size),str(image_id),str(class_id)), img)
 #predict_proba(image_id, class_id)
 
 #mtp.count_rows_in_submission()

@@ -44,7 +44,7 @@ def get_all_masks(size):
     cnt = 0
     all_test_images = d_util.get_all_test_images_official()
     start = time.time()
-    for class_id in [1,2,3,4,5,6,7,8,9]:
+    for class_id in [1,2,3,4,5,6,7,8,9,10]:
         print(class_id)
         model = joblib.load('models/{0}/rf_class_{1}.pkl'.format(str(size),str(class_id)))
         end = time.time()
@@ -56,8 +56,10 @@ def get_all_masks(size):
             print(image_id)
             img = rfm.predict(image_id, class_id, model)
             plt.imsave('{0}Masks/{1}_{2}.png'.format(str(size),str(image_id),str(class_id)), img)
+            #time.sleep(1.5)
        #     multi_polygon = mtp.mask_to_polygons(img)
             del img
+            #time.sleep(1.5)
             #mtp.create_csv_submission_inner(multi_polygon,(HEIGHT, WIDTH),class_id, image_id)
             #del multi_polygon
 def mask_image(img_target):
@@ -106,8 +108,8 @@ def and_not_image(image_id, class_id):
     plt.imshow(ret_img*255)
     return ret_img
     
-image_id = '6030_3_0'
-class_id = '4'
+#image_id = '6030_3_0'
+#class_id = '4'
 #path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
 #                                                           str(class_id))
 #img = cv2.imread(path)
@@ -142,90 +144,98 @@ def create_submission_from_masks():
 #            img_open = cv2.imread(path)
 #            img = cv2.imread(path)
 #            kernel = np.ones((2,2), np.uint8)
-            if class_id == 1:
-                img = and_not_image(image_id, class_id)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 2:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = cv2.resize(img, (1000, 1000))
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 3:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = cv2.resize(img, (1000, 1000))
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 4:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = cv2.resize(img, (1000, 1000))
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 5:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = cv2.resize(img, (1000, 1000))
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 6:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = cv2.resize(img, (1000, 1000))
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 7:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = cv2.resize(img, (1000, 1000))
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 8:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = cv2.resize(img, (1000, 1000))
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
-                                                class_id, image_id)
-            if class_id == 9:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(2000, 2000),
-                                                class_id, image_id)
-            if class_id == 10:
-                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
-                                                           str(class_id))
-                img = cv2.imread(path)
-                img = mask_image(img)
-                multi_polygon = mtp.mask_to_polygons(img, class_id)
-                mtp.create_csv_submission_inner(multi_polygon,(2000, 2000),
-                                                class_id, image_id)
+            path = '849X836combinedMasks/{0}_{1}.png'.format(str(image_id),
+                                                       str(class_id))
+            img = cv2.imread(path)
+            img = cv2.resize(img, (1000, 1000))
+            img = mask_image(img)
+            multi_polygon = mtp.mask_to_polygons(img, class_id)
+            mtp.create_csv_submission_inner(multi_polygon,(img.shape[1],img.shape[0]),
+                                            class_id, image_id)
+#            if class_id == 1:
+#                img = and_not_image(image_id, class_id)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 2:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = cv2.resize(img, (1000, 1000))
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 3:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = cv2.resize(img, (1000, 1000))
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 4:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = cv2.resize(img, (1000, 1000))
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 5:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = cv2.resize(img, (1000, 1000))
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 6:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = cv2.resize(img, (1000, 1000))
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 7:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = cv2.resize(img, (1000, 1000))
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 8:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = cv2.resize(img, (1000, 1000))
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(1000, 1000),
+#                                                class_id, image_id)
+#            if class_id == 9:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(2000, 2000),
+#                                                class_id, image_id)
+#            if class_id == 10:
+#                path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),
+#                                                           str(class_id))
+#                img = cv2.imread(path)
+#                img = mask_image(img)
+#                multi_polygon = mtp.mask_to_polygons(img, class_id)
+#                mtp.create_csv_submission_inner(multi_polygon,(2000, 2000),
+#                                                class_id, image_id)
 #            img_close = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
 #            #print('Image: ', img.shape)
 #            del img
@@ -243,12 +253,311 @@ def create_submission_from_masks():
 #            mtp.create_csv_submission_inner(multi_polygon,(2000, 2000),class_id, image_id)
 #            del multi_polygon
 
-#mtp.create_csv_initial()
-#create_submission_from_masks()
+def numpy_to_mask(class_id, image_id):
+    
+    img_array = np.load('unetMasks/10_{0}.npy'.format(image_id))
+#    print("img_array.shape=",img_array.shape)
+#    print("img_array.dtype",img_array.dtype)
+#
+#    plt.figure(class_id)
+#    plt.suptitle("Class "+ str(class_id+1) +" Mask")
+    #plt.imshow(img_array[class_id], cmap='gray')
+    path = '849X836UnetMasks/{0}_{1}.png'.format(str(image_id),
+                                                          str(class_id + 1))
+
+    #plt.imsave(
+    plt.imsave(path, img_array[class_id])
+
+def get_all_unet_masks():
+    all_test_images = d_util.get_all_test_images_official()
+    for i in [0,1,2,3,4,5,6,7,8,9]:
+        print('i', i)
+        for image_id in all_test_images:
+            print('image_id', image_id)
+            numpy_to_mask(i, image_id)
+            
+def combine_mask_rule_class_1(image_id):
+    """
+    get masks as imgs.
+    resize and make int 1, 0.
+    do logic
+    save in folder.
+    """
+    class_id = 1
+    path = '849X836UnetMasks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    unet = cv2.imread(path)#.astype(int)
+    #print('unet', unet)
+    unetmask = mask_image(unet).astype(int)
+
+    path = '100X100Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_100 = cv2.imread(path)
+    mask_100 = cv2.resize(img_100, (unet.shape[1],unet.shape[0]))
+    mask_100 = mask_image(mask_100).astype(int)
+
+    path = '250X250Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_250 = cv2.imread(path)
+    mask_250 = cv2.resize(img_250, (unet.shape[1],unet.shape[0]))
+    mask_250 = mask_image(mask_250).astype(int)
+
+    path = '500X500Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_500 = cv2.imread(path)
+    mask_500 = cv2.resize(img_500, (unet.shape[1],unet.shape[0]))
+    mask_500 = mask_image(mask_500).astype(int)
+
+    path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_2000 = cv2.imread(path)
+    mask_2000 = cv2.resize(img_2000, (unet.shape[1],unet.shape[0]))
+    mask_2000 = mask_image(mask_2000).astype(int)
+
+    mask_sum = unetmask# + mask_100 + mask_250 + mask_500 + mask_2000
+#    mask_sum[mask_sum<11] = 0
+#    mask_sum[mask_sum>10] = 1
+#849X836combinedMasks
+    path = '849X836combinedMasks/{0}_{1}.png'.format(str(image_id),
+                                                          str(class_id))
+
+    #plt.imsave(
+    plt.imsave(path, mask_sum*255)
+    #plt.imshow(mask_sum*255)
+    #print('mask_sum', mask_sum)
+#    print('unetmask.shape', unetmask.shape)
+#    print('mask_100.shape', mask_100.shape)
+#    for i in range(0, 800):
+#        for j in range(1, 800):
+#            if mask_sum[i][j]>0:
+#                print('mask_sum as mask', mask_sum[i][j])
+
+def combine_mask_rule_class_2_3(image_id,class_id):
+    """
+    get masks as imgs.
+    resize and make int 1, 0.
+    do logic
+    save in folder.
+    """
+    path = '849X836UnetMasks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    unet = cv2.imread(path)#.astype(int)
+    #print('unet', unet)
+    unetmask = mask_image(unet).astype(int)
+
+    path = '100X100Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_100 = cv2.imread(path)
+    mask_100 = cv2.resize(img_100, (unet.shape[1],unet.shape[0]))
+    mask_100 = mask_image(mask_100).astype(int)
+
+    path = '250X250Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_250 = cv2.imread(path)
+    mask_250 = cv2.resize(img_250, (unet.shape[1],unet.shape[0]))
+    mask_250 = mask_image(mask_250).astype(int)
+
+    path = '500X500Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_500 = cv2.imread(path)
+    mask_500 = cv2.resize(img_500, (unet.shape[1],unet.shape[0]))
+    mask_500 = mask_image(mask_500).astype(int)
+
+    path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_2000 = cv2.imread(path)
+    mask_2000 = cv2.resize(img_2000, (unet.shape[1],unet.shape[0]))
+    mask_2000 = mask_image(mask_2000).astype(int)
+
+    mask_sum = unetmask * 3 + mask_100 + mask_250 + mask_500 + mask_2000
+    mask_sum[mask_sum<=3] = 0
+    mask_sum[mask_sum>2] = 1
+#849X836combinedMasks
+    path = '849X836combinedMasks/{0}_{1}.png'.format(str(image_id),
+                                                          str(class_id))
+
+    #plt.imsave(
+    plt.imsave(path, mask_sum*255)
+    #plt.imshow(mask_sum*255)
+    #print('mask_sum', mask_sum)
+#    print('unetmask.shape', unetmask.shape)
+#    print('mask_100.shape', mask_100.shape)
+#    for i in range(0, 800):
+#        for j in range(1, 800):
+#            if mask_sum[i][j]>0:
+#                print('mask_sum as mask', mask_sum[i][j])
+def combine_mask_rule_class_4(image_id,class_id):
+    """
+    get masks as imgs.
+    resize and make int 1, 0.
+    do logic
+    save in folder.
+    """
+    path = '849X836UnetMasks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    unet = cv2.imread(path)#.astype(int)
+    #print('unet', unet)
+    unetmask = mask_image(unet).astype(int)
+
+    path = '100X100Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_100 = cv2.imread(path)
+    mask_100 = cv2.resize(img_100, (unet.shape[1],unet.shape[0]))
+    mask_100 = mask_image(mask_100).astype(int)
+
+    path = '250X250Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_250 = cv2.imread(path)
+    mask_250 = cv2.resize(img_250, (unet.shape[1],unet.shape[0]))
+    mask_250 = mask_image(mask_250).astype(int)
+
+    path = '500X500Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_500 = cv2.imread(path)
+    mask_500 = cv2.resize(img_500, (unet.shape[1],unet.shape[0]))
+    mask_500 = mask_image(mask_500).astype(int)
+
+    path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_2000 = cv2.imread(path)
+    mask_2000 = cv2.resize(img_2000, (unet.shape[1],unet.shape[0]))
+    mask_2000 = mask_image(mask_2000).astype(int)
+
+    mask_sum = unetmask * 3 + mask_100 + mask_250 + mask_500 + mask_2000
+    mask_sum[mask_sum<=3] = 0
+    mask_sum[mask_sum>2] = 1
+#849X836combinedMasks
+    path = '849X836combinedMasks/{0}_{1}.png'.format(str(image_id),
+                                                          str(class_id))
+
+    #plt.imsave(
+    plt.imsave(path, mask_sum*255)
+
+def combine_mask_rule_class_5_6_7_8(image_id,class_id):
+    """
+    get masks as imgs.
+    resize and make int 1, 0.
+    do logic
+    save in folder.
+    """
+    path = '849X836UnetMasks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    unet = cv2.imread(path)#.astype(int)
+    #print('unet', unet)
+    unetmask = mask_image(unet).astype(int)
+
+    path = '100X100Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_100 = cv2.imread(path)
+    mask_100 = cv2.resize(img_100, (unet.shape[1],unet.shape[0]))
+    mask_100 = mask_image(mask_100).astype(int)
+
+    path = '250X250Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_250 = cv2.imread(path)
+    mask_250 = cv2.resize(img_250, (unet.shape[1],unet.shape[0]))
+    mask_250 = mask_image(mask_250).astype(int)
+
+    path = '500X500Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_500 = cv2.imread(path)
+    mask_500 = cv2.resize(img_500, (unet.shape[1],unet.shape[0]))
+    mask_500 = mask_image(mask_500).astype(int)
+
+    path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_2000 = cv2.imread(path)
+    mask_2000 = cv2.resize(img_2000, (unet.shape[1],unet.shape[0]))
+    mask_2000 = mask_image(mask_2000).astype(int)
+
+    mask_sum = unetmask * 2 + mask_100 + mask_250 + mask_500 + mask_2000
+    mask_sum[mask_sum<=3] = 0
+    mask_sum[mask_sum>2] = 1
+#849X836combinedMasks
+    path = '849X836combinedMasks/{0}_{1}.png'.format(str(image_id),
+                                                          str(class_id))
+
+    #plt.imsave(
+    plt.imsave(path, mask_sum*255)
+    #plt.imshow(mask_sum*255)
+    #print('mask_sum', mask_sum)
+#    print('unetmask.shape', unetmask.shape)
+#    print('mask_100.shape', mask_100.shape)
+#    for i in range(0, 800):
+#        for j in range(1, 800):
+#            if mask_sum[i][j]>0:
+#                print('mask_sum as mask', mask_sum[i][j])
+
+def combine_mask_rule_class_9_10(image_id,class_id):
+    """
+    get masks as imgs.
+    resize and make int 1, 0.
+    do logic
+    save in folder.
+    """
+    path = '849X836UnetMasks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    unet = cv2.imread(path)#.astype(int)
+    #print('unet', unet)
+    unetmask = mask_image(unet).astype(int)
+
+#    path = '100X100Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+#    img_100 = cv2.imread(path)
+#    mask_100 = cv2.resize(img_100, (unet.shape[1],unet.shape[0]))
+#    mask_100 = mask_image(mask_100).astype(int)
+#
+#    path = '250X250Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+#    img_250 = cv2.imread(path)
+#    mask_250 = cv2.resize(img_250, (unet.shape[1],unet.shape[0]))
+#    mask_250 = mask_image(mask_250).astype(int)
+
+    path = '500X500Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_500 = cv2.imread(path)
+    mask_500 = cv2.resize(img_500, (unet.shape[1],unet.shape[0]))
+    mask_500 = mask_image(mask_500).astype(int)
+
+    path = '2000X2000Masks/{0}_{1}.png'.format(str(image_id),str(class_id))
+    img_2000 = cv2.imread(path)
+    mask_2000 = cv2.resize(img_2000, (unet.shape[1],unet.shape[0]))
+    mask_2000 = mask_image(mask_2000).astype(int)
+
+    mask_sum = unetmask + mask_500 + mask_2000
+    #mask_sum[mask_sum<=4] = 0
+    mask_sum[mask_sum>.5] = 1
+#849X836combinedMasks
+    path = '849X836combinedMasks/{0}_{1}.png'.format(str(image_id),
+                                                          str(class_id))
+
+    #plt.imsave(
+    plt.imsave(path, mask_sum*255)
+
+def save_class9_10_combined_masks():
+    all_test_images = d_util.get_all_test_images_official()
+    for image_id in all_test_images:
+        for class_id in [9,10]:
+            print('image_id', image_id)
+            combine_mask_rule_class_9_10(image_id, class_id)
+#save_class9_10_combined_masks()
+
+def save_class5_6_7_8_combined_masks():
+    all_test_images = d_util.get_all_test_images_official()
+    for image_id in all_test_images:
+        for class_id in [5,6,7,8]:
+            print('image_id', image_id)
+            combine_mask_rule_class_5_6_7_8(image_id, class_id)
+#save_class5_6_7_8_combined_masks()
+
+def save_class4_combined_masks():
+    all_test_images = d_util.get_all_test_images_official()
+    for image_id in all_test_images:
+        for class_id in [4]:
+            print('image_id', image_id)
+            combine_mask_rule_class_4(image_id, class_id)
+#save_class4_combined_masks()
+
+def save_class2_3_combined_masks():
+    all_test_images = d_util.get_all_test_images_official()
+    for image_id in all_test_images:
+        for class_id in [2,3]:
+            print('image_id', image_id)
+            combine_mask_rule_class_2_3(image_id, class_id)
+#save_class2_3_combined_masks()
+
+def save_class1_combined_masks():
+    all_test_images = d_util.get_all_test_images_official()
+    for image_id in all_test_images:
+        print('image_id', image_id)
+        combine_mask_rule_class_1(image_id)
+#save_class1_combined_masks()
+
+#numpy_to_mask(0, '6010_0_0')
+#get_all_unet_masks()
+#    plt.savefig('10_6010_0_0'+ str(i+1)+'.png',dpi=300)
+mtp.create_csv_initial()
+create_submission_from_masks()
 ##get_all_masks()
-#mtp.reorder_csv()
-size = '25X25'
-get_all_masks(size)
+mtp.reorder_csv()
+#size = '500X500'
+#get_all_masks(size)
 print('Done')
 
 #create_submission_from_masks()
