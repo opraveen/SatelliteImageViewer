@@ -2,13 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Jan 28 07:16:34 2017
+I took the mask_to_polygons from kernel posted on Kaggle:
+https://www.kaggle.com/ceperaang/dstl-satellite-imagery-feature-detection/
+lb-0-42-ultimate-full-solution-run-on-your-hw
+
+by Sergey Mushinskiy
 
 @author: joe
 """
 
 import cv2
 import numpy as np
-
+from shapely.geometry import MultiPolygon, Polygon
 import shapely
 from shapely import affinity
 import rasterio
@@ -17,41 +22,82 @@ import data_util as datut
 import pandas as pd
 import csv
 import sys
+from collections import defaultdict
 
 csv.field_size_limit(sys.maxsize)
 
+def mask_to_polygons(mask, epsilon=1, min_area=1.):
+    # __author__ = Konstantin Lopuhin
+    # https://www.kaggle.com/lopuhin/dstl-satellite-imagery-feature-detection/full-pipeline-demo-poly-pixels-ml-poly
 
+    # first, find contours with cv2: it's much faster than shapely
+    image, contours, hierarchy = cv2.findContours(
+        ((mask == 1) * 255).astype(np.uint8),
+        cv2.RETR_CCOMP, cv2.CHAIN_APPROX_TC89_KCOS)
+    # create approximate contours to have reasonable submission size
+    approx_contours = [cv2.approxPolyDP(cnt, epsilon, True)
+                       for cnt in contours]
+    if not contours:
+        return MultiPolygon()
+    # now messy stuff to associate parent and child contours
+    cnt_children = defaultdict(list)
+    child_contours = set()
+    assert hierarchy.shape[0] == 1
+    # http://docs.opencv.org/3.1.0/d9/d8b/tutorial_py_contours_hierarchy.html
+    for idx, (_, _, _, parent_idx) in enumerate(hierarchy[0]):
+        if parent_idx != -1:
+            child_contours.add(idx)
+            cnt_children[parent_idx].append(approx_contours[idx])
+    # create actual polygons filtering by area (removes artifacts)
+    all_polygons = []
+    for idx, cnt in enumerate(approx_contours):
+        if idx not in child_contours and cv2.contourArea(cnt) >= min_area:
+            assert cnt.shape[1] == 1
+            poly = Polygon(
+                shell=cnt[:, 0, :],
+                holes=[c[:, 0, :] for c in cnt_children.get(idx, [])
+                       if cv2.contourArea(c) >= min_area])
+            all_polygons.append(poly)
+    # approximating polygons might have created invalid ones, fix them
+    all_polygons = MultiPolygon(all_polygons)
+    if not all_polygons.is_valid:
+        all_polygons = all_polygons.buffer(0)
+        # Sometimes buffer() converts a simple Multipolygon to just a Polygon,
+        # need to keep it a Multi throughout
+        if all_polygons.type == 'Polygon':
+            all_polygons = MultiPolygon([all_polygons])
+    return all_polygons
 #SUBMISSION_FILE = pd.read_csv('submission_file.csv',
 #                         names=['ImageId','ClassType', 'MultipolygonWKT'], skiprows=1)
-def mask_to_polygons(mask, class_id):
+def mask_to_polygons2(mask, class_id):
     all_polygons=[]
     for shape, value in features.shapes(mask.astype(np.int16),
                                 mask = (mask==1),
                                 transform = rasterio.Affine(1.0, 0, 0, 0, 1.0, 0)):
         del value
         shape1 = shapely.geometry.shape(shape)
-        del shape
-        if class_id == 1:
-            simp = 15
-        if class_id == 2:
-            simp = 15
-        if class_id == 3:
-            simp = 15
-        if class_id == 4:
-            simp = 15
-        if class_id == 5:
-            simp = 15
-        if class_id == 6:
-            simp = 15
-        if class_id == 7:
-            simp = 15
-        if class_id == 8:
-            simp = 15
-        if class_id == 9:
-            simp = 2
-        if class_id == 10:
-            simp = 2
-        shape1 = shape1.simplify(simp, preserve_topology=True)
+#        del shape
+#        if class_id == 1:
+#            simp = 15
+#        if class_id == 2:
+#            simp = 15
+#        if class_id == 3:
+#            simp = 15
+#        if class_id == 4:
+#            simp = 15
+#        if class_id == 5:
+#            simp = 15
+#        if class_id == 6:
+#            simp = 15
+#        if class_id == 7:
+#            simp = 15
+#        if class_id == 8:
+#            simp = 15
+#        if class_id == 9:
+#            simp = 2
+#        if class_id == 10:
+#            simp = 2
+        shape1 = shape1.simplify(1, preserve_topology=True)
         all_polygons.append(shape1)
         del shape1
 
